@@ -1,211 +1,478 @@
-import { Rocket, Search, User } from 'lucide-react';
-import { useState } from 'react';
+import { Rocket, Search, Terminal, Activity, GitCommit, Eye, Globe, Pin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+interface ContributionDay {
+  date: string;
+  count: number;
+  level: number;
+}
+
+interface Repo {
+  id: number;
+  name: string;
+  description: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  language: string | null;
+  html_url: string;
+  homepage: string | null;
+  topics: string[];
+}
+
+interface LiveProject {
+  title: string;
+  description: string;
+  techStack: string[];
+  liveLink: string;
+  repoLink?: string;
+  status: 'live' | 'beta' | 'maintenance';
+  pinned?: boolean;
+}
 
 export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState('all');
+  const [contributions, setContributions] = useState<{ intensity: string; count: number }[]>([]);
+  const [repos, setRepos] = useState<Repo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const projects = [
+  const GITHUB_USERNAME = 'vanshika701';
+
+  // Add repository names here to hide them from the portfolio
+  const HIDDEN_REPOS = ['vanshika701', 'portfolio-v1', 'learning-git', 'healthcare-website', 'healthcare-website1'];
+
+  // Add repository names here to PIN them to the top of the GitHub list
+  const PINNED_REPOS = ['HyperDrive Engine', 'Neural Pink Network']; // Example names, replace with real ones if needed
+
+  // MANUALLY ADD YOUR DEPLOYED PROJECTS HERE
+  const LIVE_PROJECTS: LiveProject[] = [
     {
-      name: 'HyperDrive Engine',
-      description: 'A high-performance Pink-JS runtime for distributed computing across edge nodes.',
-      version: 'v2.4.1',
-      stars: '1.7k',
-      watchers: '245',
-      language: 'JavaScript',
-      status: 'active',
-      terminalAccess: true
+      title: 'Rank Retreivel Model',
+      description: 'A comprehensive information retrieval system built with Python that implements advanced text processing, indexing, and ranking algorithms for efficient document search and retrieval.',
+      techStack: ['Python', 'NLP', 'Machine Learning', 'Information Retrieval'],
+      liveLink: 'https://ranked-retrieval-model.streamlit.app/',
+      repoLink: 'https://github.com/vanshika701/Rank-Retrieval-Model',
+      status: 'live',
+      pinned: true
     },
     {
-      name: 'Neural Pink Network',
-      description: 'Self-learning UI components that adapt to user behavior using lightweight ML models.',
-      version: 'β 0.8',
-      stars: '856',
-      watchers: '89',
-      language: 'TypeScript',
-      status: 'active',
-      terminalAccess: false
+      title: 'The Route Cause',
+      description: 'AI-Powered Traffic Management System',
+      techStack: ['Reinforcement Learning', 'Python', 'Machine Learning', 'TypeScript', 'React', 'FastAPI'],
+      liveLink: 'https://the-route-cause.vercel.app/',
+      repoLink: 'https://github.com/vanshika701/The-Route-Cause',
+      status: 'live',
+      pinned: true
     },
     {
-      name: 'Boutique Blockchain',
-      description: 'A specialized ledger for luxury asset tracking and authentication.',
-      version: '1.0.2',
-      stars: '2.1k',
-      watchers: '173',
-      language: 'Go',
-      status: 'public-beta',
-      terminalAccess: false
-    }
+      title: 'Calories Burnt Predictor',
+      description: 'number of calories burnt during exercise',
+      techStack: ['Python', 'Machine Learning', 'Jupyter Notebook', 'XGBoost Regressor', 'Scikit-Learn'],
+      liveLink: 'https://calorie-burnt-predict-jwqshdbz2bb8pxraqx26pr.streamlit.app/',
+      repoLink: 'https://github.com/vanshika701/Calorie-Burnt-Predict',
+      status: 'live',
+      pinned: true
+    },
+    // Copy the block above to add more projects
   ];
 
-  const generateContributionGraph = () => {
-    const weeks = 52;
-    const days = 7;
-    const contributions = [];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch Contributions
+        const contribResponse = await fetch(`https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}?y=last`);
+        const contribData = await contribResponse.json();
 
-    for (let week = 0; week < weeks; week++) {
-      for (let day = 0; day < days; day++) {
-        const level = Math.random();
-        let intensity = 'bg-pink-900/20';
-        if (level > 0.7) intensity = 'bg-pink-500';
-        else if (level > 0.5) intensity = 'bg-pink-600';
-        else if (level > 0.3) intensity = 'bg-pink-700';
-        else if (level > 0.1) intensity = 'bg-pink-800';
+        if (contribData && contribData.contributions) {
+          const processedData = contribData.contributions.map((day: any) => {
+            let intensity = 'bg-[#1a1a1a]';
+            if (day.count > 10) intensity = 'bg-barbie-pink';
+            else if (day.count > 6) intensity = 'bg-barbie-pink/70';
+            else if (day.count > 3) intensity = 'bg-barbie-pink/40';
+            else if (day.count > 0) intensity = 'bg-barbie-pink/20';
 
-        contributions.push({ week, day, intensity });
+            return { intensity, count: day.count, date: day.date };
+          });
+
+          // Ensure we have exactly 52 * 7 = 364 days for the grid, taking the last 364
+          const last364 = processedData.slice(-364);
+          // Pad if necessary (unlikely for "last year" query but good for safety)
+          while (last364.length < 364) {
+            last364.unshift({ intensity: 'bg-[#1a1a1a]', count: 0 });
+          }
+          setContributions(last364);
+        }
+
+        // Fetch Repositories
+        const reposResponse = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`);
+        const reposData = await reposResponse.json();
+
+        if (Array.isArray(reposData)) {
+          // Create a Set of repo links from LIVE_PROJECTS to filter them out of the general repo list
+          const liveProjectRepoLinks = new Set(LIVE_PROJECTS.map(p => p.repoLink).filter(link => link));
+
+          let filteredRepos = reposData.filter((repo: Repo) => {
+            const isHidden = HIDDEN_REPOS.includes(repo.name);
+            const isLiveProject = repo.html_url && liveProjectRepoLinks.has(repo.html_url);
+            return !isHidden && !isLiveProject;
+          });
+
+          // Sort: Pinned projects first, then by updated_at (default from API usually, but safe to assume order)
+          filteredRepos.sort((a, b) => {
+            const isAPinned = PINNED_REPOS.includes(a.name);
+            const isBPinned = PINNED_REPOS.includes(b.name);
+            if (isAPinned && !isBPinned) return -1;
+            if (!isAPinned && isBPinned) return 1;
+            return 0;
+          });
+
+          setRepos(filteredRepos);
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch GitHub data", error);
+        // Fallback for contributions
+        setContributions(Array(364).fill({ intensity: 'bg-[#1a1a1a]', count: 0 }));
+      } finally {
+        setLoading(false);
+        setProjectsLoading(false);
       }
-    }
+    };
 
-    return contributions;
-  };
+    fetchData();
+  }, []);
 
-  const contributions = generateContributionGraph();
+  // Filter projects based on search query
+  const filteredLiveProjects = LIVE_PROJECTS.filter(project => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      project.title.toLowerCase().includes(searchLower) ||
+      project.techStack.some(tech => tech.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const filteredRepos = repos.filter(repo => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      repo.name.toLowerCase().includes(searchLower) ||
+      (repo.language && repo.language.toLowerCase().includes(searchLower))
+    );
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen bg-cyber-black text-white">
       <div className="max-w-7xl mx-auto px-6 pt-32 pb-20">
-        <div className="flex items-center justify-between mb-8">
+
+        {/* Header Section */}
+        <div className="flex items-end justify-between mb-16">
           <div>
-            <h1 className="text-5xl font-bold text-white mb-4">Projects & Open Source</h1>
-            <p className="text-pink-400 text-lg">Exploring the intersection of high-tech engineering and pink aesthetics.</p>
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
+              <span className="text-barbie-pink">&gt;_</span> Projects & Open Source<span className="animate-pulse">_</span>
+            </h1>
+            <p className="text-[#D02670] text-lg font-medium font-mono">// Exploring the intersection of high-tech engineering and pink aesthetics.</p>
           </div>
 
-          <div className="hidden md:flex items-center gap-3 bg-gray-800/50 backdrop-blur border border-gray-700 rounded-full px-4 py-2">
-            <Search className="w-4 h-4 text-gray-400" />
+          <div className="hidden md:flex items-center gap-3 bg-[#1A1A1A] rounded-full px-5 py-2.5 border border-gray-800 w-80 focus-within:border-barbie-pink/50 transition-colors">
+            <span className="text-barbie-pink font-bold">$</span>
             <input
               type="text"
-              placeholder="Search Repos..."
-              className="bg-transparent text-gray-300 outline-none w-48"
+              placeholder="grep 'project_name'..."
+              className="bg-transparent text-gray-300 outline-none w-full text-sm placeholder-gray-600 font-mono"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex gap-6 mb-8 border-b border-gray-800">
+        {/* Tabs */}
+        <div className="flex gap-8 mb-12 border-b border-gray-800">
           {['all', 'featured', 'research'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-2 font-medium transition-colors relative ${
-                activeTab === tab
-                  ? 'text-pink-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
+              className={`pb-4 px-1 font-bold text-xs tracking-widest uppercase transition-all relative font-mono ${activeTab === tab
+                ? 'text-white'
+                : 'text-gray-500 hover:text-gray-300'
+                }`}
             >
-              {tab === 'all' && 'ALL REPOSITORY'}
-              {tab === 'featured' && 'FEATURED WORK'}
-              {tab === 'research' && 'ACTIVE RESEARCH'}
+              {activeTab === tab && <span className="text-barbie-pink mr-2">[</span>}
+              {tab === 'all' && 'ALL_REPOS'}
+              {tab === 'featured' && 'LIVE_PROJECTS'}
+              {tab === 'research' && 'ACTIVE_RESEARCH'}
+              {activeTab === tab && <span className="text-barbie-pink ml-2">]</span>}
+
               {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-barbie-pink shadow-[0_0_10px_rgba(255,0,127,0.5)]"></div>
               )}
             </button>
           ))}
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-20">
-          {projects.map((project) => (
-            <div
-              key={project.name}
-              className="bg-gray-800/50 backdrop-blur border border-gray-700 rounded-2xl p-6 hover:border-pink-500/50 transition-all group"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="bg-pink-500/20 p-3 rounded-xl">
-                  <Rocket className="w-6 h-6 text-pink-400" />
+        {/* Projects Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-20">
+          {/* Live Projects Section - Shows on All and Live Projects tabs */}
+          {(activeTab === 'all' || activeTab === 'featured') && (
+            filteredLiveProjects.map((project, index) => (
+              <div
+                key={`live-${index}`}
+                className="bg-[#0F0F0F] border border-gray-800 rounded-3xl p-8 hover:border-barbie-pink/40 hover:shadow-[0_0_30px_rgba(255,0,127,0.1)] transition-all group relative overflow-hidden flex flex-col"
+              >
+                {/* Top Row with Pin */}
+                <div className="flex items-start justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#1A1A1A] flex items-center justify-center text-barbie-pink border border-gray-800 group-hover:scale-110 transition-transform">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    {project.pinned && (
+                      <div className="w-8 h-8 rounded-full bg-[#3D0C1F] flex items-center justify-center text-barbie-pink border border-barbie-pink/20" title="Pinned Project">
+                        <Pin className="w-3 h-3 fill-current" />
+                      </div>
+                    )}
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${project.status === 'live' ? 'bg-[#064e3b]/30 text-green-400 border-green-900' : 'bg-[#3D0C1F] text-barbie-pink border-barbie-pink/20'
+                    }`}>
+                    {project.status.toUpperCase()}
+                  </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  project.status === 'active'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
-                }`}>
-                  {project.status === 'active' ? 'ACTIVE' : 'PUBLIC BETA'}
+
+                {/* Content */}
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-barbie-pink transition-colors truncate" title={project.title}>
+                  {project.title}
+                </h3>
+                <p className="text-gray-500 text-sm mb-8 leading-relaxed font-light line-clamp-3 flex-grow">
+                  {project.description}
+                </p>
+
+                {/* Tech Stack */}
+                <div className="flex gap-2 mb-8 flex-wrap">
+                  {project.techStack.map(tech => (
+                    <span key={tech} className="text-[10px] font-mono px-2 py-1 rounded bg-[#1A1A1A] text-gray-400 border border-gray-800">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Footer / Link */}
+                <div className="flex items-center justify-between gap-4 pt-6 border-t border-gray-900/50 mt-auto">
+                  {/* Repo Link */}
+                  {project.repoLink && (
+                    <a
+                      href={project.repoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-barbie-pink transition-colors uppercase tracking-widest"
+                    >
+                      <GitCommit className="w-3 h-3" />
+                      VIEW REPO
+                    </a>
+                  )}
+
+                  {/* Live Link */}
+                  <a
+                    href={project.liveLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 group/btn ml-auto"
+                  >
+                    <span className="text-[10px] font-bold text-white group-hover/btn:text-barbie-pink transition-colors uppercase tracking-widest">VISIT SITE</span>
+                    <div className="w-8 h-8 rounded-full bg-barbie-pink text-white flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-barbie-pink transition-all">
+                      <Eye className="w-4 h-4" />
+                    </div>
+                  </a>
                 </div>
               </div>
+            ))
+          )}
 
-              <h3 className="text-xl font-bold text-white mb-2">{project.name}</h3>
-              <p className="text-gray-400 text-sm mb-4 leading-relaxed">{project.description}</p>
+          {/* GitHub Repos Section - Shows on All and Research tabs (hides on Live Projects tab) */}
+          {(activeTab === 'all' || activeTab !== 'featured') && (
+            projectsLoading ? (
+              Array.from({ length: 9 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="bg-[#0F0F0F] border border-gray-800 rounded-3xl p-8 h-80 animate-pulse">
+                  <div className="flex justify-between mb-8">
+                    <div className="w-12 h-12 bg-[#1A1A1A] rounded-full"></div>
+                    <div className="w-20 h-6 bg-[#1A1A1A] rounded-full"></div>
+                  </div>
+                  <div className="w-3/4 h-8 bg-[#1A1A1A] rounded mb-4"></div>
+                  <div className="w-full h-4 bg-[#1A1A1A] rounded mb-2"></div>
+                  <div className="w-2/3 h-4 bg-[#1A1A1A] rounded"></div>
+                </div>
+              ))
+            ) : (
+              filteredRepos.map((project) => {
+                const isPinned = PINNED_REPOS.includes(project.name);
+                return (
+                  <div
+                    key={project.id}
+                    className="bg-[#0F0F0F] border border-gray-800 rounded-3xl p-8 hover:border-barbie-pink/40 hover:shadow-[0_0_30px_rgba(255,0,127,0.1)] transition-all group relative overflow-hidden flex flex-col"
+                  >
+                    {/* Top Row */}
+                    <div className="flex items-start justify-between mb-8">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#1A1A1A] flex items-center justify-center text-barbie-pink border border-gray-800 group-hover:scale-110 transition-transform">
+                          <Rocket className="w-5 h-5" />
+                        </div>
+                        {isPinned && (
+                          <div className="w-8 h-8 rounded-full bg-[#3D0C1F] flex items-center justify-center text-barbie-pink border border-barbie-pink/20" title="Pinned Repo">
+                            <Pin className="w-3 h-3 fill-current" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-[#3D0C1F] text-barbie-pink border-barbie-pink/20">
+                        PUBLIC
+                      </div>
+                    </div>
 
-              <div className="flex gap-4 text-sm text-gray-400 mb-4">
-                <div className="flex items-center gap-1">
-                  <span className="text-pink-400">★</span>
-                  <span>{project.stars}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-pink-400">👁</span>
-                  <span>{project.watchers}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="w-3 h-3 rounded-full bg-pink-500"></span>
-                  <span>{project.language}</span>
-                </div>
-              </div>
+                    {/* Content */}
+                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-barbie-pink transition-colors truncate" title={project.name}>
+                      {project.name}
+                    </h3>
+                    <p className="text-gray-500 text-sm mb-8 leading-relaxed font-light line-clamp-3 flex-grow">
+                      {project.description || "No description provided."}
+                    </p>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-                <div className="text-gray-500 text-sm font-mono">TERMINAL ACCESS</div>
-                <div className={`w-12 h-6 rounded-full transition-colors ${
-                  project.terminalAccess ? 'bg-pink-500' : 'bg-gray-700'
-                } relative`}>
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-                    project.terminalAccess ? 'right-0.5' : 'left-0.5'
-                  }`}></div>
-                </div>
-              </div>
-            </div>
-          ))}
+                    {/* Stats */}
+                    <div className="flex gap-6 text-xs font-medium text-gray-500 mb-8 pt-6 border-t border-gray-900/50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-barbie-pink">★</span>
+                        <span>{project.stargazers_count}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <GitCommit className="w-3 h-3 text-barbie-pink" />
+                        <span>{project.forks_count}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        <span className="w-2 h-2 rounded-full bg-barbie-pink"></span>
+                        <span>{project.language || 'Code'}</span>
+                      </div>
+                    </div>
+
+                    {/* Footer / Link */}
+                    <div className="flex items-center justify-between gap-4 pt-6 border-t border-gray-900/50 mt-auto">
+                      {/* Repo Link */}
+                      <a
+                        href={project.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-[10px] font-bold text-gray-600 hover:text-barbie-pink transition-colors uppercase tracking-widest group-hover/link:text-barbie-pink"
+                      >
+                        <GitCommit className="w-3 h-3" />
+                        VIEW REPO
+                      </a>
+
+                      {/* Optional Homepage Link for Repos if it exists */}
+                      {project.homepage && (
+                        <a
+                          href={project.homepage}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 group/btn"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-[#1A1A1A] text-gray-400 flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-barbie-pink transition-all">
+                            <Eye className="w-4 h-4" />
+                          </div>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )
+          )}
         </div>
 
-        <div className="bg-gray-800/50 backdrop-blur border border-gray-700 rounded-2xl p-8 mb-20">
-          <div className="flex items-center justify-between mb-6">
+        {/* Open Source Activity */}
+        <div className="bg-[#0F0F0F] border border-barbie-pink/20 rounded-[2.5rem] p-10 mb-20 relative overflow-hidden">
+
+          <div className="flex items-center justify-between mb-10 relative z-10">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Open Source Activity</h2>
-              <p className="text-gray-400 text-sm">Visualizing 2,842 contributions in the last 12 months</p>
+              <h2 className="text-2xl font-bold text-white mb-2 font-mono">
+                <span className="text-barbie-pink">./</span>Open_Source_Activity
+              </h2>
+              <p className="text-barbie-pink text-sm font-medium font-mono">--visualizing {GITHUB_USERNAME}'s contributions</p>
             </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400">Less</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-pink-900/20 rounded"></div>
-                  <div className="w-3 h-3 bg-pink-800 rounded"></div>
-                  <div className="w-3 h-3 bg-pink-700 rounded"></div>
-                  <div className="w-3 h-3 bg-pink-600 rounded"></div>
-                  <div className="w-3 h-3 bg-pink-500 rounded"></div>
-                </div>
-                <span className="text-gray-400">More</span>
+            <div className="hidden md:flex items-center gap-3 text-xs text-gray-500 font-mono">
+              <span>[ LOW ]</span>
+              <div className="flex gap-1">
+                <div className="w-3 h-3 rounded-sm bg-[#1a1a1a]"></div>
+                <div className="w-3 h-3 rounded-sm bg-barbie-pink/20"></div>
+                <div className="w-3 h-3 rounded-sm bg-barbie-pink/40"></div>
+                <div className="w-3 h-3 rounded-sm bg-barbie-pink/70"></div>
+                <div className="w-3 h-3 rounded-sm bg-barbie-pink"></div>
               </div>
+              <span>[ HIGH ]</span>
             </div>
           </div>
 
-          <div className="flex gap-1 overflow-x-auto pb-4">
-            {Array.from({ length: 52 }).map((_, weekIndex) => (
-              <div key={weekIndex} className="flex flex-col gap-1">
-                {Array.from({ length: 7 }).map((_, dayIndex) => {
-                  const contribution = contributions[weekIndex * 7 + dayIndex];
-                  return (
-                    <div
-                      key={`${weekIndex}-${dayIndex}`}
-                      className={`w-3 h-3 rounded-sm ${contribution.intensity} hover:ring-2 hover:ring-pink-400 transition-all cursor-pointer`}
-                      title="Contributions"
-                    ></div>
-                  );
-                })}
-              </div>
-            ))}
+          <div className="flex gap-1 overflow-x-auto pb-4 relative z-10 scrollbar-hide">
+            {loading ? (
+              // Loading Skeleton
+              Array.from({ length: 52 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-1">
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <div key={j} className="w-3 h-3 rounded-sm bg-gray-800/50 animate-pulse"></div>
+                  ))}
+                </div>
+              ))
+            ) : (
+              // Real Data
+              Array.from({ length: 52 }).map((_, weekIndex) => (
+                <div key={weekIndex} className="flex flex-col gap-1">
+                  {Array.from({ length: 7 }).map((_, dayIndex) => {
+                    const index = weekIndex * 7 + dayIndex;
+                    const contribution = contributions[index] || { intensity: 'bg-[#1a1a1a]', count: 0 };
+                    return (
+                      <div
+                        key={`${weekIndex}-${dayIndex}`}
+                        className={`w-3 h-3 rounded-sm ${contribution.intensity} hover:scale-125 transition-transform cursor-pointer relative group`}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white text-cyber-black text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20 font-mono">
+                          {contribution.count} commits
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        <div className="bg-gray-800/50 backdrop-blur border border-gray-700 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-2">System Global Status</h2>
-          <p className="text-green-400 text-sm mb-6">All cloud deployments are operational. Continuous integration active.</p>
+        {/* System Global Status */}
+        <div className="bg-[#121212] border border-gray-800 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-left">
+            <h2 className="text-xl font-bold text-white mb-1 font-mono">
+              [ SYSTEM :: GLOBAL_STATUS ]
+            </h2>
+            <p className="text-[#D02670] text-sm font-medium font-mono">&gt; All cloud deployments are operational. Continuous integration active.</p>
+          </div>
 
           <div className="flex gap-4">
-            <button className="bg-pink-500/20 text-pink-400 px-6 py-3 rounded-full font-medium border border-pink-500/30 hover:bg-pink-500/30 transition-all flex items-center gap-2">
-              <span>📊</span> System Logs
+            <button className="px-6 py-2.5 rounded-lg bg-[#2D1623] text-barbie-pink text-sm font-bold border border-barbie-pink/20 hover:bg-[#3D1F2F] transition-colors flex items-center gap-2 font-mono">
+              <Terminal className="w-4 h-4" /> &gt; view_logs
             </button>
-            <button className="bg-pink-500 text-white px-6 py-3 rounded-full font-medium hover:shadow-lg hover:shadow-pink-500/50 transition-all flex items-center gap-2 hover:scale-105">
-              <span>📡</span> Live Feed
+            <button className="px-6 py-2.5 rounded-lg bg-barbie-pink text-white text-sm font-bold hover:bg-barbie-pink/90 transition-colors flex items-center gap-2 shadow-lg shadow-barbie-pink/20 font-mono">
+              <Activity className="w-4 h-4" /> --live_feed
             </button>
           </div>
         </div>
 
-        <footer className="mt-20 pt-12 border-t border-gray-800 text-center">
-          <div className="text-gray-600 text-sm mb-4">© 2024 DevBarbie.js • Designed with high-frequency algorithms & love.</div>
+        <footer className="mt-24 flex justify-center gap-8 border-t border-gray-800/50 pt-10 pb-10">
+          <div className="text-gray-600 text-xs font-mono">© 2024 DevBarbie.js • [ Executed with high-frequency algorithms & love ]</div>
+          <div className="flex gap-4 text-gray-500">
+            {/* Simple Icons */}
+            <div className="w-4 h-4 hover:text-barbie-pink cursor-pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11a9 9 0 0 1 9 9" /><path d="M4 4a16 16 0 0 1 16 16" /><circle cx="5" cy="19" r="1" /></svg>
+            </div>
+            <div className="w-4 h-4 hover:text-barbie-pink cursor-pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+            </div>
+            <div className="w-4 h-4 hover:text-barbie-pink cursor-pointer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="14.31" y1="8" x2="20.05" y2="17.94" /><line x1="9.69" y1="8" x2="21.17" y2="8" /><line x1="7.38" y1="12" x2="13.12" y2="2.06" /><line x1="9.69" y1="16" x2="3.95" y2="6.06" /><line x1="14.31" y1="16" x2="2.83" y2="16" /><line x1="16.62" y1="12" x2="10.88" y2="21.94" /></svg>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

@@ -10,18 +10,19 @@ export default function Header({ currentPage, onNavigate, theme = 'light' }: Hea
   const isDark = theme === 'dark';
 
   return (
-    <header className={`${isDark ? 'bg-gray-900/50' : 'bg-white/80'} backdrop-blur-sm fixed top-0 left-0 right-0 z-50 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${isDark ? 'bg-[#0f0f0f]/80 border-gray-800' : 'bg-white/80 border-gray-100'
+      } backdrop-blur-md border-b`}>
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <button
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-3 group"
           >
-            <div className="bg-gradient-to-br from-pink-500 to-pink-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
-              <Terminal className="w-5 h-5 text-white" />
+            <div className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-[#1A1A1A] group-hover:bg-[#252525]' : 'bg-barbie-pink text-white'}`}>
+              <Terminal className={`w-5 h-5 ${isDark ? 'text-barbie-pink' : 'text-white'}`} />
             </div>
-            <span className={`font-bold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              CyberBarbie<span className="text-pink-500">.sh</span>
+            <span className={`font-bold text-xl tracking-tight ${isDark ? 'text-white' : 'text-cyber-black'}`}>
+              <span className="text-barbie-pink mr-1">&gt;_</span>CyberBarbie<span className="text-barbie-pink">.sh</span>
             </span>
           </button>
 
@@ -30,19 +31,18 @@ export default function Header({ currentPage, onNavigate, theme = 'light' }: Hea
               <button
                 key={item}
                 onClick={() => onNavigate(item.toLowerCase())}
-                className={`${
-                  currentPage === item.toLowerCase()
-                    ? 'text-pink-500'
-                    : isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
-                } transition-colors font-medium`}
+                className={`text-sm font-bold tracking-wide transition-colors ${currentPage === item.toLowerCase()
+                  ? 'text-barbie-pink'
+                  : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-cyber-black'
+                  }`}
               >
-                {item}
+                <span className="text-barbie-pink opacity-50 mr-1">//</span>{item}
               </button>
             ))}
           </nav>
 
-          <button className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg hover:shadow-pink-500/50 transition-all hover:scale-105">
-            Hire Me
+          <button className="bg-barbie-pink text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-barbie-pink/30 hover:shadow-xl hover:shadow-barbie-pink/40 hover:-translate-y-0.5 transition-all font-mono">
+            sudo ./hire_me
           </button>
         </div>
       </div>
