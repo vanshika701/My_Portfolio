@@ -1,0 +1,51 @@
+import { useState, useEffect } from 'react';
+import Header from './components/Header';
+import HomePage from './components/HomePage';
+import StackPage from './components/StackPage';
+import ProjectsPage from './components/ProjectsPage';
+import ExperiencePage from './components/ExperiencePage';
+import ContactPage from './components/ContactPage';
+
+function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+
+  useEffect(() => {
+    const darkPages = ['stack', 'projects', 'experience'];
+    if (darkPages.includes(currentPage)) {
+      document.body.style.backgroundColor = '#0f172a';
+    } else {
+      document.body.style.backgroundColor = '#ffffff';
+    }
+  }, [currentPage]);
+
+  const getTheme = () => {
+    const darkPages = ['stack', 'projects', 'experience'];
+    return darkPages.includes(currentPage) ? 'dark' : 'light';
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <HomePage />;
+      case 'stack':
+        return <StackPage />;
+      case 'projects':
+        return <ProjectsPage />;
+      case 'experience':
+        return <ExperiencePage />;
+      case 'contact':
+        return <ContactPage />;
+      default:
+        return <HomePage />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen">
+      <Header currentPage={currentPage} onNavigate={setCurrentPage} theme={getTheme()} />
+      {renderPage()}
+    </div>
+  );
+}
+
+export default App;
