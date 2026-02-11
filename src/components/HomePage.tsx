@@ -46,11 +46,15 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               [ SYSTEM STATUS :: OPTIMIZED ]
             </div>
             <h1 className="text-6xl md:text-7xl font-bold text-cyber-black mb-6 leading-tight font-mono">
-              <span className="text-barbie-pink">&gt;_</span> Hello World,<br />
-              <span className="text-cyber-black opacity-80">// I'm Barbie.</span>
+              <span className="text-barbie-pink">&gt;_</span> Hello World<br />
+              {/*<span className="text-cyber-black opacity-80">// its me Vanshika</span>*/}
             </h1>
             <p className="text-gray-600 text-lg mb-8 leading-relaxed max-w-lg font-light font-mono">
-              /* Architecting the future of web ecosystems with high-heels and higher-order functions. Computer Science Engineer specializing in pink-themed high-performance systems. */
+              /* Turning caffeine into clean code.
+                Computer Science engineer specializing in pink-themed high-performance systems.
+                Web dev is my comfort zone, ML is my curiosity.
+                Building street-smart skills through open source and real projects.
+                Learning fast, shipping faster — internships welcome. */
             </p>
             <div className="flex gap-4 font-mono">
               <button
@@ -63,12 +67,12 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
 
-        {/* Terminal Section */}
+        {/* Terminal Section 
         <div className="mb-32 relative">
           <Star className="w-14 h-14 -top-10 right-20 opacity-10 -rotate-6" />
           <h2 className="text-2xl font-bold text-cyber-black mb-6 font-mono">&gt; Active Terminal Session_</h2>
           <TerminalSection />
-        </div>
+        </div>*/}
 
         {/* Core Technical Stack */}
         <div className="mb-32 relative">
@@ -144,10 +148,9 @@ Operating System, Database Management System(DBMS)"
           <Star className="w-12 h-12 bottom-10 right-10 opacity-10 -rotate-12" />
           <div className="text-barbie-pink font-bold text-lg mb-6 font-mono">&gt; CyberBarbie.sh</div>
           <div className="flex justify-center gap-8 mb-8 text-xs font-bold text-gray-400 uppercase tracking-widest font-mono">
-            <a href="#" className="hover:text-barbie-pink transition-colors">[ GitHub ]</a>
-            <a href="#" className="hover:text-barbie-pink transition-colors">[ LinkedIn ]</a>
-            <a href="#" className="hover:text-barbie-pink transition-colors">[ Twitter (X) ]</a>
-            <a href="#" className="hover:text-barbie-pink transition-colors">[ Dribbble ]</a>
+            <a href="https://github.com/vanshika701" className="hover:text-barbie-pink transition-colors">[ GitHub ]</a>
+            <a href="https://www.linkedin.com/in/vanshikasrivastava701/" className="hover:text-barbie-pink transition-colors">[ LinkedIn ]</a>
+            <a href="#" className="hover:text-barbie-pink transition-colors">[ Instagram ]</a>
           </div>
           <p className="text-gray-400 text-xs font-mono">[ © 2024. Designed with &lt;3 and lots of Pink CSS. ]</p>
         </footer>
@@ -158,7 +161,7 @@ Operating System, Database Management System(DBMS)"
 
 function TechCard({ icon, title, skills }: { icon: React.ReactNode; title: string; skills: string }) {
   return (
-    <div className="bg-white p-8 rounded-[2rem] border border-gray-100 hover:border-barbie-pink/30 hover:shadow-xl hover:shadow-barbie-pink/5 transition-all group cursor-default">
+    <div className="bg-barbie-soft  p-8 rounded-[2rem] border border-gray-100 hover:border-barbie-pink/30 hover:shadow-xl hover:shadow-barbie-pink/5 transition-all group cursor-default">
       <div className="mb-6">
         <div className="w-12 h-12 bg-barbie-soft rounded-2xl flex items-center justify-center text-barbie-pink group-hover:scale-110 transition-transform duration-300">
           {icon}

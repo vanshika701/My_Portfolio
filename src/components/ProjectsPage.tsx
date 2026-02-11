@@ -440,7 +440,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* System Global Status */}
+        {/* System Global Status 
         <div className="bg-[#121212] border border-gray-800 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-left">
             <h2 className="text-xl font-bold text-white mb-1 font-mono">
@@ -457,7 +457,7 @@ export default function ProjectsPage() {
               <Activity className="w-4 h-4" /> --live_feed
             </button>
           </div>
-        </div>
+        </div>*/}
 
         <footer className="mt-24 flex justify-center gap-8 border-t border-gray-800/50 pt-10 pb-10">
           <div className="text-gray-600 text-xs font-mono">© 2024 DevBarbie.js • [ Executed with high-frequency algorithms & love ]</div>
