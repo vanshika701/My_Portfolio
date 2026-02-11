@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import StackPage from './components/StackPage';
@@ -44,6 +45,7 @@ function App() {
     <div className="min-h-screen">
       <Header currentPage={currentPage} onNavigate={setCurrentPage} theme={getTheme()} />
       {renderPage()}
+      <SpeedInsights />
     </div>
   );
 }
