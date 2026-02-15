@@ -10,7 +10,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('home');
 
   useEffect(() => {
-    const darkPages = ['stack', 'projects', 'experience'];
+    const darkPages = ['stack', 'projects', 'education_career'];
     if (darkPages.includes(currentPage)) {
       document.body.style.backgroundColor = '#0f172a';
     } else {
@@ -19,7 +19,7 @@ function App() {
   }, [currentPage]);
 
   const getTheme = () => {
-    const darkPages = ['stack', 'projects', 'experience'];
+    const darkPages = ['stack', 'projects', 'education_career'];
     return darkPages.includes(currentPage) ? 'dark' : 'light';
   };
 
@@ -31,7 +31,7 @@ function App() {
         return <StackPage />;
       case 'projects':
         return <ProjectsPage />;
-      case 'experience':
+      case 'education_career':
         return <ExperiencePage />;
       case 'contact':
         return <ContactPage />;

@@ -27,11 +27,11 @@ export default function Header({ currentPage, onNavigate, theme = 'light' }: Hea
           </button>
 
           <nav className="hidden md:flex items-center gap-8">
-            {['Projects', 'Stack', 'Experience', 'Contact'].map((item) => (
+            {['Projects', 'Stack', 'Education & Career', 'Contact'].map((item) => (
               <button
                 key={item}
-                onClick={() => onNavigate(item.toLowerCase())}
-                className={`text-sm font-bold tracking-wide transition-colors ${currentPage === item.toLowerCase()
+                onClick={() => onNavigate(item.toLowerCase().replace(' & ', '_').replace(' ', '_'))}
+                className={`text-sm font-bold tracking-wide transition-colors ${currentPage === item.toLowerCase().replace(' & ', '_').replace(' ', '_')
                   ? 'text-barbie-pink'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-cyber-black'
                   }`}

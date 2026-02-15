@@ -1,10 +1,25 @@
-import { Briefcase, Download, Send, Terminal } from 'lucide-react';
+import { Briefcase, Download, Send, Terminal, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ExperiencePage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+
+  const education = [
+    {
+      degree: 'Bachelor of Technology in Computer Science',
+      institution: 'Tech University',
+      year: '2020-2024',
+      description: 'Specialized in Artificial Intelligence and Machine Learning with a focus on distributed systems and cloud computing.'
+    },
+    {
+      degree: 'Higher Secondary Education',
+      institution: 'Science Academy',
+      year: '2018-2020',
+      description: 'Completed with distinction in Mathematics, Physics, and Computer Science.'
+    }
+  ];
 
   const experiences = [
     {
@@ -36,17 +51,53 @@ export default function ExperiencePage() {
     }, 1500);
   };
 
+  const handleDownloadResume = () => {
+    // Create a link to the resume PDF file
+    const link = document.createElement('a');
+    link.href = '/Vanshika_Srivastava_Resume (1).pdf'; // Path to your PDF in the public folder
+    link.download = 'Vanshika_Resume.pdf';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-cyber-black text-white">
       <div className="max-w-5xl mx-auto px-6 pt-32 pb-20">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 font-mono">
-            <span className="text-barbie-pink">&gt;_</span> Internships & Mission Control
+            <span className="text-barbie-pink">&gt;_</span> Education & Career
           </h1>
           <p className="text-[#D02670] text-lg font-medium font-mono">
-            // Tracking the professional trajectory of a high-tech software engineer.<br />
+            // Tracking the academic and professional journey of a high-tech software engineer.<br />
             <span className="animate-pulse">[ Protocol initiated ]</span>
           </p>
+        </div>
+
+        <div className="mb-20">
+          <div className="flex items-center gap-3 mb-12 border-b border-gray-800 pb-4">
+            <GraduationCap className="w-5 h-5 text-barbie-pink" />
+            <h2 className="text-2xl font-bold font-mono">&gt; Academic Timeline_</h2>
+          </div>
+
+          <div className="relative">
+            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-barbie-pink via-purple-600 to-gray-800"></div>
+
+            {education.map((edu, index) => (
+              <div key={index} className="relative pl-16 pb-12 last:pb-0">
+                <div className="absolute left-3 top-2 w-6 h-6 bg-cyber-black rounded-full flex items-center justify-center border-2 border-barbie-pink z-10">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+
+                <div className="bg-[#1A1A1A] border border-gray-800 rounded-2xl p-8 hover:border-barbie-pink/30 hover:bg-[#202020] transition-all group">
+                  <h3 className="text-xl font-bold text-white mb-1 group-hover:text-barbie-pink transition-colors font-mono">&gt; {edu.degree}</h3>
+                  <div className="text-gray-400 font-medium mb-3 text-sm font-mono">[ {edu.institution} ] • <span className="text-barbie-pink">{edu.year}</span></div>
+                  <p className="text-gray-500 leading-relaxed text-sm font-mono">// {edu.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mb-20">
@@ -84,7 +135,7 @@ export default function ExperiencePage() {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2 font-mono">[ Technical Specifications ]</h2>
           <p className="text-gray-500 mb-8 max-w-md mx-auto font-mono">Download my full resume to see the complete list of protocols and capabilities.</p>
-          <button className="bg-white text-cyber-black px-8 py-3 rounded-full font-bold hover:bg-barbie-pink hover:text-white transition-all inline-flex items-center gap-2 font-mono">
+          <button onClick={handleDownloadResume} className="bg-white text-cyber-black px-8 py-3 rounded-full font-bold hover:bg-barbie-pink hover:text-white transition-all inline-flex items-center gap-2 font-mono">
             <Download className="w-4 h-4" />
             ./download_resume.sh
           </button>
